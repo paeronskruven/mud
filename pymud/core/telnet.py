@@ -1,0 +1,13 @@
+IAC = bytes([255])
+WILL = bytes([251])
+WONT = bytes([252])
+DO = bytes([253])
+DONT = bytes([254])
+NOP = bytes([241])
+SB = bytes([250])
+SE = bytes([240])
+IS = bytes([0])
+SEND = bytes([1])
+
+CHARSET = bytes([42])
+NAWS = bytes([31])
