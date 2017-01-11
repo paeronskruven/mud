@@ -2,6 +2,7 @@ import enum
 import logging
 
 from . import core
+from .dal import account
 
 
 logger = logging.getLogger(__name__)
@@ -44,11 +45,12 @@ class LoginController(Controller):
         elif self._state == self.States.ASK_FOR_PASSWORD:
             self._password = self._client.buffer
 
-            if self._validate_user():
+            if account.authenticate(self._username, self._password):
                 # todo: authenticate client and get character
                 self._client.controller = GameController(self._client)
                 return
             else:
+                self._client.write_line('Invalid details')
                 self._state = self.States.ASK_FOR_USERNAME
 
         self._render()
@@ -58,9 +60,6 @@ class LoginController(Controller):
             self._client.write_line('Enter your username:')
         elif self._state == self.States.ASK_FOR_PASSWORD:
             self._client.write_line('Enter your password:')
-
-    def _validate_user(self):
-        return True
 
 
 class GameController(Controller):
@@ -81,5 +80,7 @@ class GameController(Controller):
 
         try:
             core.command.invoke(cmd, **kwargs)
-        except core.command.CommandException as ex:
+        except core.command.CommandNotFoundException:
             self._client.write_line('{0} is not a valid command'.format(cmd))
+        except core.command.CommandInvalidArgumentException:
+            self._client.write_line('{0} contained invalid arguments'.format(cmd))

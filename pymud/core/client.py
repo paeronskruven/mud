@@ -21,17 +21,22 @@ class Client(asyncio.Protocol):
         self.buffer = ''
 
     def data_received(self, data):
+        # new data received, reset the state and buffer
         state = self.ReceiveState.NORMAL
+        self.buffer = ''
 
-        for char in data:
-            byte = bytes([char])
+        for byte in [bytes([char]) for char in data]:
             if state == self.ReceiveState.NORMAL:
                 if byte == telnet.IAC:
                     state = self.ReceiveState.TN_IAC
                     print('Got IAC')
                     continue
 
-                self.buffer += char
+                # CR or LF received, ignore
+                if byte in [b'\r', b'\n']:
+                    continue
+
+                self.buffer += byte.decode('ascii')
 
             elif state == self.ReceiveState.TN_IAC:
                 if byte == telnet.SB:
@@ -50,17 +55,14 @@ class Client(asyncio.Protocol):
                     state = self.ReceiveState.NORMAL
                     print('Got SE')
 
-        return
         self.controller.update()
 
     def connection_lost(self, exc):
-        pass
+        logger.info('Lost connection ', exc)
 
     def connection_made(self, transport):
         self.transport = transport
         self.controller = controllers.LoginController(self)
-
-        self.transport.write(telnet.IAC + telnet.DO + telnet.NAWS)
 
     def write(self, data):
         """

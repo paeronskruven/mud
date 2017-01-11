@@ -1,6 +1,14 @@
 class CommandException(BaseException):
     pass
 
+
+class CommandNotFoundException(BaseException):
+    pass
+
+
+class CommandInvalidArgumentException(BaseException):
+    pass
+
 """
 Following variable contains all commands that has been added at runtime.
 Commands can add themselves with the decorator @core.command.add('cmd name').
@@ -23,9 +31,12 @@ def parse(data):
 def invoke(cmd, **kwargs):
     for key, value in _commands.items():
         if cmd in value:
-            return value[cmd](**kwargs)
+            try:
+                return value[cmd](**kwargs)
+            except TypeError:
+                raise CommandInvalidArgumentException()
         else:
-            raise CommandException('Command {0} not found'.format(cmd))
+            raise CommandNotFoundException('Command {0} not found'.format(cmd))
 
 
 def add(cmd):
