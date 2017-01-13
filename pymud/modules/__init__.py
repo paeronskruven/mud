@@ -1,1 +1,1 @@
-from . import chat
+from pymud.modules import chat

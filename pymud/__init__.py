@@ -1,1 +1,1 @@
-from . import modules
+from pymud import modules

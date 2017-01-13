@@ -1,28 +1,14 @@
 import enum
 import logging
 
-from . import core
-from .dal import account
+from pymud import core
+from pymud.dal import account
 
 
 logger = logging.getLogger(__name__)
 
 
-class Controller:
-    """
-    Base class for all controllers.
-
-    The update() method on controllers gets invoked when the client has sent data to the server.
-    """
-
-    def __init__(self, client):
-        self._client = client
-
-    def update(self):
-        raise NotImplementedError()
-
-
-class LoginController(Controller):
+class LoginController(core.Controller):
 
     class States(enum.IntEnum):
         ASK_FOR_USERNAME = 0
@@ -37,7 +23,7 @@ class LoginController(Controller):
 
         self._render()
 
-    def update(self):
+    async def update(self):
         if self._state == self.States.ASK_FOR_USERNAME:
             self._username = self._client.buffer
             self._state = self.States.ASK_FOR_PASSWORD
@@ -45,7 +31,7 @@ class LoginController(Controller):
         elif self._state == self.States.ASK_FOR_PASSWORD:
             self._password = self._client.buffer
 
-            if account.authenticate(self._username, self._password):
+            if await account.authenticate(self._username, self._password):
                 # todo: authenticate client and get character
                 self._client.controller = GameController(self._client)
                 return
@@ -62,12 +48,12 @@ class LoginController(Controller):
             self._client.write_line('Enter your password:')
 
 
-class GameController(Controller):
+class GameController(core.Controller):
 
     def __init__(self, *args):
         super().__init__(*args)
 
-    def update(self):
+    async def update(self):
         parts = core.command.parse(self._client.buffer)
         cmd = parts[0]
 
@@ -79,7 +65,7 @@ class GameController(Controller):
             pass
 
         try:
-            core.command.invoke(cmd, **kwargs)
+            await core.command.invoke(cmd, **kwargs)
         except core.command.CommandNotFoundException:
             self._client.write_line('{0} is not a valid command'.format(cmd))
         except core.command.CommandInvalidArgumentException:

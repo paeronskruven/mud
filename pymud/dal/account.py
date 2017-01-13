@@ -1,7 +1,7 @@
-from . import db
+from pymud.dal import db
 
 
-def authenticate(username, password):
+async def authenticate(username, password):
     """
     Authenticate a username and password against the database
 

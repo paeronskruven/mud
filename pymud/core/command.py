@@ -1,3 +1,8 @@
+import logging
+
+logger = logging.getLogger(__name__)
+
+
 class CommandException(BaseException):
     pass
 
@@ -9,8 +14,9 @@ class CommandNotFoundException(BaseException):
 class CommandInvalidArgumentException(BaseException):
     pass
 
+
 """
-Following variable contains all commands that has been added at runtime.
+Dictionary containing all commands that has been added at runtime.
 Commands can add themselves with the decorator @core.command.add('cmd name').
 
 Structure as following:
@@ -22,6 +28,13 @@ Structure as following:
 }
 """
 _commands = {}
+
+
+def log_info():
+    logger.info('Available commands:')
+    for mod_name, cmds in _commands.items():
+        for cmd in cmds:
+            logger.info('{0}->{1}'.format(mod_name, cmd))
 
 
 def parse(data):

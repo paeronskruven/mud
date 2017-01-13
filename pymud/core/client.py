@@ -2,13 +2,15 @@ import asyncio
 import logging
 import enum
 
-from . import telnet
-from .. import controllers
+from pymud.core import telnet
+from pymud.core.controller import Controller
 
 logger = logging.getLogger(__name__)
 
 
 class Client(asyncio.Protocol):
+
+    _origin_controller = None
 
     class ReceiveState(enum.IntEnum):
         NORMAL = 0
@@ -25,6 +27,8 @@ class Client(asyncio.Protocol):
         state = self.ReceiveState.NORMAL
         self.buffer = ''
 
+        # iterate the received bytes
+        # todo: handle telnet protocol elsewhere?
         for byte in [bytes([char]) for char in data]:
             if state == self.ReceiveState.NORMAL:
                 if byte == telnet.IAC:
@@ -55,14 +59,24 @@ class Client(asyncio.Protocol):
                     state = self.ReceiveState.NORMAL
                     print('Got SE')
 
-        self.controller.update()
+        # update the current controller if we have anything in the buffer
+        if self.buffer:
+
+            asyncio.ensure_future(self.controller.update())
 
     def connection_lost(self, exc):
-        logger.info('Lost connection ', exc)
+        logger.info('Lost connection')
 
     def connection_made(self, transport):
         self.transport = transport
-        self.controller = controllers.LoginController(self)
+        self.controller = self._origin_controller(self)
+
+    @classmethod
+    def set_origin_controller(cls, controller):
+        if issubclass(controller, Controller):
+            cls._origin_controller = controller
+        else:
+            raise TypeError('Expected type: {0}, got: {1}'.format(Controller, controller))
 
     def write(self, data):
         """
@@ -74,4 +88,4 @@ class Client(asyncio.Protocol):
         """
         Encodes and writes data to the client with an linebreak at the end.
         """
-        self.transport.write('{0}\n'.format(data).encode('utf-8'))
+        self.transport.write('{0}\n'.format(data).encode('ascii'))

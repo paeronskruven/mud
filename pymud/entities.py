@@ -1,4 +1,4 @@
-from . import controllers
+from pymud import controllers
 
 
 class Player:
