@@ -13,6 +13,7 @@ class ScheduledTask:
         self._func = func
         self._interval = interval
         asyncio.ensure_future(self._run())
+        # todo: add possibility to end tasks on shutdown
 
     async def _run(self):
         while True:
