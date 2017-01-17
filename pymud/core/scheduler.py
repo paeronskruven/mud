@@ -4,21 +4,11 @@ import asyncio
 class SchedulerException(BaseException):
     pass
 
-_scheduled_tasks = set()
 
-
-class ScheduledTask:
-
-    def __init__(self, func, interval):
-        self._func = func
-        self._interval = interval
-        asyncio.ensure_future(self._run())
-        # todo: add possibility to end tasks on shutdown
-
-    async def _run(self):
-        while True:
-            await asyncio.sleep(self._interval)
-            self._func()
+async def _task(func, interval):
+    while True:
+        await asyncio.sleep(interval)
+        func()
 
 
 def schedule_interval(func, interval):
@@ -29,6 +19,5 @@ def schedule_interval(func, interval):
     """
     if not callable(func):
         raise SchedulerException('{0} is not callable'.format(type(func)))
-    _scheduled_tasks.add(
-        ScheduledTask(func, interval)
-    )
+
+    asyncio.ensure_future(_task(func, interval))
