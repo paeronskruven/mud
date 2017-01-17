@@ -22,7 +22,7 @@ class Server:
 
         # todo: implement uvloop when not running on windows for performance
         self._event_loop = asyncio.get_event_loop()
-        
+
     def add_client_handle(self, handle):
         self._client_handles.append(handle)
 

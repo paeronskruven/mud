@@ -8,5 +8,5 @@ class Controller:
     def __init__(self, client):
         self._client = client
 
-    async def update(self):
+    async def update(self, buffer):
         raise NotImplementedError()

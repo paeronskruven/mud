@@ -61,8 +61,7 @@ class Client(asyncio.Protocol):
 
         # update the current controller if we have anything in the buffer
         if self.buffer:
-
-            asyncio.ensure_future(self.controller.update())
+            asyncio.ensure_future(self.controller.update(self.buffer))
 
     def connection_lost(self, exc):
         logger.info('Lost connection')

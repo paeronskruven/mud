@@ -23,13 +23,13 @@ class LoginController(core.Controller):
 
         self._render()
 
-    async def update(self):
+    async def update(self, buffer):
         if self._state == self.States.ASK_FOR_USERNAME:
-            self._username = self._client.buffer
+            self._username = buffer
             self._state = self.States.ASK_FOR_PASSWORD
 
         elif self._state == self.States.ASK_FOR_PASSWORD:
-            self._password = self._client.buffer
+            self._password = buffer
 
             if await account.authenticate(self._username, self._password):
                 # todo: authenticate client and get character
@@ -53,8 +53,8 @@ class GameController(core.Controller):
     def __init__(self, *args):
         super().__init__(*args)
 
-    async def update(self):
-        parts = core.command.parse(self._client.buffer)
+    async def update(self, buffer):
+        parts = core.command.parse(buffer)
         cmd = parts[0]
 
         kwargs = {'client': self._client}
